@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { ARButton } from './ar-button';
 
-function initializeAR(buttonContainerId, videoUrl) {
+function initializeAR(buttonContainerId, videoUrl, scale = 1.0) {
   let videoParent, videoMesh, shadowMesh, reticle, hitTestSource = null;
   let videoStarted = false;
 
@@ -215,7 +215,7 @@ function initializeAR(buttonContainerId, videoUrl) {
         reticle.position.y, 
         reticle.position.z
       );
-      videoMesh.scale.set(1.1, 1.1, 1.1);
+      videoMesh.scale.set(scale, scale, scale);
       videoMesh.visible = true;
       shadowMesh.visible = true;
       videoStarted = true;
