@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AR Example</title>
+  <style>
+    body { margin: 0; }
+
+
+  </style>
+</head>
+<body>
+  <!-- Create a container div where the AR button and renderer will be placed -->
+  <div id="ar-container"></div>
+  <div id="ar-container-button"></div>
+
+  <!-- Include the bundled script -->
+  <script src="ar.bundle.js"></script>
+
+  <!-- Initialize the AR functionality -->
+  <script>
+    ARModule.initializeAR('ar-container', "ar-container-button");
+  </script>
+</body>
+</html>
