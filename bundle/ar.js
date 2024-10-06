@@ -1,4 +1,5 @@
 // ar.js
+// npx rollup -c rollup.config.mjs 
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -47,6 +48,7 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0) {
   videoTexture.minFilter = THREE.NearestFilter;
   videoTexture.magFilter = THREE.NearestFilter;
   videoTexture.format = THREE.RGBAFormat; 
+  videoTexture.colorSpace = THREE.SRGBColorSpace;
 
   const videoMaterial = new THREE.MeshBasicMaterial({ 
     map: videoTexture, 

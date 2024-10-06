@@ -128,3 +128,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+key.pem
+localhost.crt
+localhost.csr
+localhost.key
+server.py
