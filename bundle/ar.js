@@ -2,15 +2,16 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
+import { ARButton } from './ar-button';
 
-export function initializeAR(containerId) {
+function initializeAR(buttonContainerId, videoUrl) {
   let videoParent, videoMesh, shadowMesh, reticle, hitTestSource = null;
   let videoStarted = false;
 
-  const container = document.getElementById(containerId);
-  if (!container) {
-    console.error(`Container with id '${containerId}' not found.`);
+
+  const buttonContainer = document.getElementById(buttonContainerId);
+  if (!buttonContainer) {
+    console.error(`Container with id '${buttonContainerId}' not found.`);
     return;
   }
 
@@ -27,18 +28,17 @@ export function initializeAR(containerId) {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.xr.enabled = true;
   renderer.shadowMap.enabled = false;
-  container.appendChild(renderer.domElement);
 
   // Create the AR button
   const arButton = ARButton.createButton(renderer, { 
     requiredFeatures: ['hit-test']
   });
   arButton.classList.add('ar-button');
-  container.appendChild(arButton);
+  buttonContainer.appendChild(arButton);
 
   // Set up the video element
   const video = document.createElement('video');
-  video.src = "media/video/optima/optima2.webm";
+  video.src = videoUrl;
   video.crossOrigin = 'anonymous';
   video.loop = true;
   video.muted = false; 
@@ -46,7 +46,6 @@ export function initializeAR(containerId) {
   const videoTexture = new THREE.VideoTexture(video);
   videoTexture.minFilter = THREE.NearestFilter;
   videoTexture.magFilter = THREE.NearestFilter;
-  videoTexture.encoding = THREE.sRGBEncoding;
   videoTexture.format = THREE.RGBAFormat; 
 
   const videoMaterial = new THREE.MeshBasicMaterial({ 
@@ -261,3 +260,5 @@ export function initializeAR(containerId) {
   // Start the animation loop
   animate();
 }
+
+export { initializeAR };
