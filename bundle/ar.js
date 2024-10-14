@@ -105,7 +105,7 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0) {
 
   // Load the reticle model
   const loader = new GLTFLoader();
-  loader.load('https://fikusus.github.io/media/gltf/reticle/reticle.gltf', (gltf) => {
+  loader.load('https://fikusus.github.io/ARBundle/media/gltf/reticle/reticle.gltf', (gltf) => {
     reticle = gltf.scene;
     reticle.visible = false;
     scene.add(reticle);
