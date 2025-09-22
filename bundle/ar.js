@@ -5,7 +5,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { ARButton } from './ar-button';
 
-function initializeAR(buttonContainerId, videoUrl, scale = 1.0) {
+// Added optional params:
+//  disableShadow: when true, shadow circle won't be created or shown
+//  yOffset: additional vertical offset added when placing the video at reticle position
+function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = false, yOffset = 0) {
   let videoParent, videoMesh, shadowMesh, reticle, hitTestSource = null;
   let videoStarted = false;
 
@@ -63,44 +66,46 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0) {
   videoMesh.visible = false; 
   videoMesh.renderOrder = 2;
 
-  // Create the shadow mesh
-  const shadowGeometry = new THREE.CircleGeometry(0.8, 64);
-  const shadowMaterial = new THREE.ShaderMaterial({
-    transparent: true,
-    side: THREE.DoubleSide,
-    uniforms: {
-      color: { value: new THREE.Color(0x000000) },
-      opacity: { value: 0.5 }
-    },
-    vertexShader: `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 color;
-      uniform float opacity;
-      varying vec2 vUv;
-      void main() {
-        float dist = length(vUv - 0.5);
-        float alpha = 1.0 - smoothstep(0.01, 0.4, dist);
-        gl_FragColor = vec4(color, alpha * opacity);
-      }
-    `
-  });
+  // Create the shadow mesh (unless disabled)
+  if (!disableShadow) {
+    const shadowGeometry = new THREE.CircleGeometry(0.8, 64);
+    const shadowMaterial = new THREE.ShaderMaterial({
+      transparent: true,
+      side: THREE.DoubleSide,
+      uniforms: {
+        color: { value: new THREE.Color(0x000000) },
+        opacity: { value: 0.5 }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 color;
+        uniform float opacity;
+        varying vec2 vUv;
+        void main() {
+          float dist = length(vUv - 0.5);
+          float alpha = 1.0 - smoothstep(0.01, 0.4, dist);
+          gl_FragColor = vec4(color, alpha * opacity);
+        }
+      `
+    });
 
-  shadowMesh = new THREE.Mesh(shadowGeometry, shadowMaterial);
-  shadowMesh.rotation.x = -Math.PI / 2;
-  shadowMesh.position.y = -0.02;
-  shadowMesh.visible = false;
-  shadowMesh.renderOrder = 1;
+    shadowMesh = new THREE.Mesh(shadowGeometry, shadowMaterial);
+    shadowMesh.rotation.x = -Math.PI / 2;
+    shadowMesh.position.y = -0.02;
+    shadowMesh.visible = false;
+    shadowMesh.renderOrder = 1;
+  }
 
   // Create a parent object and add meshes
   videoParent = new THREE.Object3D();
   videoParent.add(videoMesh);
-  videoParent.add(shadowMesh);
+  if (shadowMesh) videoParent.add(shadowMesh);
   scene.add(videoParent);
 
   // Load the reticle model
@@ -124,7 +129,7 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0) {
   // Function to reset the scene
   function resetScene() {
     videoMesh.visible = false;
-    shadowMesh.visible = false;
+  if (shadowMesh) shadowMesh.visible = false;
     video.pause();
     video.currentTime = 0;
 
@@ -214,12 +219,12 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0) {
       video.play();
       videoParent.position.set(
         reticle.position.x, 
-        reticle.position.y, 
+        reticle.position.y + yOffset, 
         reticle.position.z
       );
       videoMesh.scale.set(scale, scale, scale);
       videoMesh.visible = true;
-      shadowMesh.visible = true;
+      if (shadowMesh) shadowMesh.visible = true;
       videoStarted = true;
       if (hitTestSource) {
         hitTestSource.cancel(); 
