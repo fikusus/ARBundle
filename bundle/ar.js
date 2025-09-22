@@ -8,7 +8,7 @@ import { ARButton } from './ar-button';
 // Added optional params:
 //  disableShadow: when true, shadow circle won't be created or shown
 //  yOffset: additional vertical offset added when placing the video at reticle position
-function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = false, yOffset = 0) {
+function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = false, xOffset = 0, yOffset = 0, zOffset = 0) {
   let videoParent, videoMesh, shadowMesh, reticle, hitTestSource = null;
   let videoStarted = false;
 
@@ -22,9 +22,9 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = 
   // Set up the scene, camera, and renderer
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(
-    70, 
-    window.innerWidth / window.innerHeight, 
-    0.01, 
+    70,
+    window.innerWidth / window.innerHeight,
+    0.01,
     20
   );
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -34,7 +34,7 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = 
   renderer.shadowMap.enabled = false;
 
   // Create the AR button
-  const arButton = ARButton.createButton(renderer, { 
+  const arButton = ARButton.createButton(renderer, {
     requiredFeatures: ['hit-test']
   });
   arButton.classList.add('ar-button');
@@ -45,25 +45,25 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = 
   video.src = videoUrl;
   video.crossOrigin = 'anonymous';
   video.loop = true;
-  video.muted = false; 
+  video.muted = false;
 
   const videoTexture = new THREE.VideoTexture(video);
   videoTexture.minFilter = THREE.NearestFilter;
   videoTexture.magFilter = THREE.NearestFilter;
-  videoTexture.format = THREE.RGBAFormat; 
+  videoTexture.format = THREE.RGBAFormat;
   videoTexture.colorSpace = THREE.SRGBColorSpace;
 
-  const videoMaterial = new THREE.MeshBasicMaterial({ 
-    map: videoTexture, 
-    transparent: true, 
+  const videoMaterial = new THREE.MeshBasicMaterial({
+    map: videoTexture,
+    transparent: true,
     depthWrite: false,
     blending: THREE.NormalBlending
   });
 
   // Create the video mesh
-  const geometry = new THREE.PlaneGeometry(0.6, 0.5); 
+  const geometry = new THREE.PlaneGeometry(0.6, 0.5);
   videoMesh = new THREE.Mesh(geometry, videoMaterial);
-  videoMesh.visible = false; 
+  videoMesh.visible = false;
   videoMesh.renderOrder = 2;
 
   // Create the shadow mesh (unless disabled)
@@ -129,7 +129,7 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = 
   // Function to reset the scene
   function resetScene() {
     videoMesh.visible = false;
-  if (shadowMesh) shadowMesh.visible = false;
+    if (shadowMesh) shadowMesh.visible = false;
     video.pause();
     video.currentTime = 0;
 
@@ -172,8 +172,8 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = 
 
             reticle.visible = true;
             reticle.position.set(
-              hitPose.transform.position.x, 
-              hitPose.transform.position.y, 
+              hitPose.transform.position.x,
+              hitPose.transform.position.y,
               hitPose.transform.position.z
             );
           } else {
@@ -189,7 +189,7 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = 
           reusableVector.setFromMatrixPosition(reusableViewMatrix);
 
           reusableDirection.subVectors(reusableVector, videoParent.position);
-          reusableDirection.y = 0; 
+          reusableDirection.y = 0;
           reusableDirection.normalize();
 
           const angleY = Math.atan2(reusableDirection.x, reusableDirection.z);
@@ -218,38 +218,38 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = 
     if (!videoStarted && reticle && reticle.visible) {
       video.play();
       videoParent.position.set(
-        reticle.position.x, 
-        reticle.position.y + yOffset, 
-        reticle.position.z
+        reticle.position.x + xOffset,
+        reticle.position.y + yOffset,
+        reticle.position.z + zOffset
       );
       videoMesh.scale.set(scale, scale, scale);
       videoMesh.visible = true;
       if (shadowMesh) shadowMesh.visible = true;
       videoStarted = true;
       if (hitTestSource) {
-        hitTestSource.cancel(); 
+        hitTestSource.cancel();
         hitTestSource = null;
       }
-      reticle.visible = false; 
+      reticle.visible = false;
     }
   }
 
   // Adjust video mesh based on video metadata
   video.addEventListener('loadedmetadata', () => {
     const aspectRatio = video.videoWidth / video.videoHeight;
-    videoMesh.geometry.dispose(); 
+    videoMesh.geometry.dispose();
     const newHeight = 1 / aspectRatio;
     const newWidth = 1;
     const newGeometry = new THREE.PlaneGeometry(newWidth, newHeight);
     newGeometry.translate(0, newHeight / 2, 0);
-    videoMesh.geometry = newGeometry; 
+    videoMesh.geometry = newGeometry;
   });
 
   // Event listeners for session
   renderer.xr.addEventListener('sessionstart', () => {
     const session = renderer.xr.getSession();
     session.addEventListener('select', onSelect);
-    session.addEventListener('end', resetScene); 
+    session.addEventListener('end', resetScene);
   });
 
   renderer.xr.addEventListener('sessionend', () => {
