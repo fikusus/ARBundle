@@ -105,6 +105,8 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = 
   // Create a parent object and add meshes
   videoParent = new THREE.Object3D();
   videoParent.add(videoMesh);
+  // Возвращаем тень внутрь videoParent, но дальше при размещении компенсируем offsets
+  // локальным смещением самой тени (тень останется визуально на месте ретикла).
   if (shadowMesh) videoParent.add(shadowMesh);
   scene.add(videoParent);
 
@@ -224,7 +226,13 @@ function initializeAR(buttonContainerId, videoUrl, scale = 1.0, disableShadow = 
       );
       videoMesh.scale.set(scale, scale, scale);
       videoMesh.visible = true;
-      if (shadowMesh) shadowMesh.visible = true;
+      // Компенсируем offsets: так как shadowMesh является дочерним videoParent,
+      // мировая позиция videoParent = (reticle + offsets). Чтобы тень осталась
+      // в точке ретикла, задаём локальную позицию = -offsets. Дополнительно опускаем по Y на 0.02.
+      if (shadowMesh) {
+        shadowMesh.position.set(-xOffset, -0.02 - yOffset, -zOffset);
+        shadowMesh.visible = true;
+      }
       videoStarted = true;
       if (hitTestSource) {
         hitTestSource.cancel();
